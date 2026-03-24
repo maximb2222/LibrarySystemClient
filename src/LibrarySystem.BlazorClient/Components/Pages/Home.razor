@@ -1,0 +1,65 @@
+@page "/"
+@inject SessionService Session
+@inject NavigationManager Nav
+
+@if (!Session.IsAuthenticated)
+{
+    Nav.NavigateTo("/login");
+    return;
+}
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <h2><i class="bi bi-house"></i> Добро пожаловать, @Session.Username!</h2>
+        <p class="text-muted">Роль: <span class="badge bg-primary">@Session.Role</span></p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-book display-4 text-primary"></i>
+                <h5 class="card-title mt-3">Каталог книг</h5>
+                <p class="card-text">Просмотр, поиск и управление книгами библиотеки.</p>
+                <a href="/books" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+
+    @if (Session.IsLibrarian)
+    {
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-4 text-success"></i>
+                    <h5 class="card-title mt-3">Читатели</h5>
+                    <p class="card-text">Регистрация и управление читателями.</p>
+                    <a href="/readers" class="btn btn-success">Перейти</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-left-right display-4 text-warning"></i>
+                    <h5 class="card-title mt-3">Выдачи</h5>
+                    <p class="card-text">Выдача, возврат книг и контроль просрочек.</p>
+                    <a href="/loans" class="btn btn-warning">Перейти</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-bar-chart display-4 text-info"></i>
+                    <h5 class="card-title mt-3">Статистика</h5>
+                    <p class="card-text">Сводная информация о библиотеке.</p>
+                    <a href="/statistics" class="btn btn-info">Перейти</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

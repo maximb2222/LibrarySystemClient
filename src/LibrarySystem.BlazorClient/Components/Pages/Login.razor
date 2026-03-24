@@ -1,0 +1,94 @@
+@page "/login"
+@inject LibraryApiClient Api
+@inject SessionService Session
+@inject NavigationManager Nav
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-primary text-white text-center">
+                <h4><i class="bi bi-shield-lock"></i> Вход в систему</h4>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i> @errorMessage
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label">Имя пользователя</label>
+                    <input type="text" class="form-control" @bind="username" @bind:event="oninput"
+                           @onkeydown="HandleKeyPress" placeholder="admin / librarian / reader" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-control" @bind="password" @bind:event="oninput"
+                           @onkeydown="HandleKeyPress" placeholder="Введите пароль" />
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" @bind="useTcp" id="useTcp" />
+                        <label class="form-check-label" for="useTcp">
+                            Использовать TCP транспорт
+                        </label>
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100" @onclick="DoLogin" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    Войти
+                </button>
+            </div>
+            <div class="card-footer text-muted small">
+                <strong>Тестовые аккаунты:</strong><br />
+                admin / admin123 (Admin) &bull;
+                librarian / lib123 (Librarian) &bull;
+                reader / read123 (Reader)
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private bool useTcp;
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await DoLogin();
+    }
+
+    private async Task DoLogin()
+    {
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Заполните все поля.";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var token = await Api.AuthenticateAsync(username, password, useTcp);
+            Session.SetToken(token);
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ErrorHandler.HandleException(ex);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,97 @@
+@page "/statistics"
+@inject LibraryApiClient Api
+@inject SessionService Session
+@inject NavigationManager Nav
+
+@if (!Session.IsAuthenticated || !Session.IsLibrarian) { Nav.NavigateTo("/"); return; }
+
+<h3><i class="bi bi-bar-chart"></i> Статистика библиотеки</h3>
+
+<div class="mb-3">
+    <div class="form-check d-inline-block">
+        <input class="form-check-input" type="checkbox" @bind="useTcp" id="tcpS" />
+        <label class="form-check-label" for="tcpS">TCP</label>
+    </div>
+    <button class="btn btn-primary btn-sm ms-3" @onclick="LoadStats">
+        <i class="bi bi-arrow-clockwise"></i> Обновить
+    </button>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (isLoading)
+{
+    <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+}
+else if (stats != null)
+{
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="display-4">@stats.TotalBooks</div>
+                <div class="text-muted mt-2">
+                    <i class="bi bi-book"></i> Всего книг
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="display-4">@stats.AvailableBooks</div>
+                <div class="text-muted mt-2">
+                    <i class="bi bi-check-circle"></i> Доступно
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="display-4">@stats.TotalReaders</div>
+                <div class="text-muted mt-2">
+                    <i class="bi bi-people"></i> Всего читателей
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="display-4">@stats.ActiveLoans</div>
+                <div class="text-muted mt-2">
+                    <i class="bi bi-arrow-left-right"></i> Активные выдачи
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="display-4 text-danger">@stats.OverdueLoans</div>
+                <div class="text-muted mt-2">
+                    <i class="bi bi-exclamation-triangle"></i> Просроченные
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card">
+                <div class="display-4">@stats.TotalLoans</div>
+                <div class="text-muted mt-2">
+                    <i class="bi bi-journal"></i> Всего выдач
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private LibraryStatsDto? stats;
+    private bool isLoading = true, useTcp;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync() => await LoadStats();
+
+    private async Task LoadStats()
+    {
+        isLoading = true; errorMessage = null;
+        try { stats = await Api.GetStatisticsAsync(Session.Token!, useTcp); }
+        catch (Exception ex) { errorMessage = ErrorHandler.HandleException(ex); }
+        finally { isLoading = false; }
+    }
+}
